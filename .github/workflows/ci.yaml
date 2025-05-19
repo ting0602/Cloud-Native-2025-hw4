@@ -30,7 +30,7 @@ jobs:
         run: |
           cd backend
           npx vitest run --coverage
-          COVERAGE=$(node -p "require('./coverage/coverage-summary.json').total.statements.pct")
+          COVERAGE=$(node -p "require('./backend/coverage/coverage-summary.json').total.statements.pct")
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
         id: coverage
 
