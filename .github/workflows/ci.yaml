@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  test-and-format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies for frontend and backend
+        run: |
+          npm install --workspace frontend
+          npm install --workspace backend
+
+      - name: Run backend unit tests and collect coverage
+        run: |
+          cd backend
+          npx vitest run --coverage
+          COVERAGE=$(node -p "require('./coverage/coverage-summary.json').total.statements.pct")
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+        id: coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage
+
+      - name: Compare coverage with previous run (stub implementation)
+        run: |
+          echo "Previous coverage comparison is not implemented."
+          echo "Assuming current coverage is acceptable."
+
+      - name: Detect changed TypeScript files
+        id: changes
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.ts
+            **/*.tsx
+
+      - name: Format changed files with Prettier
+        if: steps.changes.outputs.any_changed == 'true'
+        run: |
+          echo "${{ steps.changes.outputs.all_changed_files }}" > changed_files.txt
+          npx prettier --write $(cat changed_files.txt)
+
+      - name: Commit formatting changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-format with Prettier"
+            git push
+          else
+            echo "No formatting changes needed."
