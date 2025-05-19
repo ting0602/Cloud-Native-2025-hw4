@@ -66,12 +66,6 @@ jobs:
           name: last-coverage
           path: .
 
-      - name: Download previous coverage artifact (if exists)
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          name: last-coverage
-          path: .
-
       - name: Compare with previous coverage
         run: |
           echo "Current coverage: $COVERAGE%"
