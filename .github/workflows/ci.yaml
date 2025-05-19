@@ -34,15 +34,25 @@ jobs:
         run: |
           npx vitest run --coverage
 
-      - name: Extract coverage percentage
+      - name: Extract coverage percentage from coverage-final.json
         working-directory: backend
         run: |
-          echo "Reading coverage from ./coverage/coverage-summary.json"
-          ls -R backend/coverage || echo "❌ coverage folder not found"
-          COVERAGE=$(node -e "console.log(require('./coverage/coverage-summary.json').total.statements.pct)")
+          echo "Calculating total statement coverage from coverage-final.json"
+          COVERAGE=$(node -e "
+            const data = require('./coverage/coverage-final.json');
+            let totalCovered = 0, totalStatements = 0;
+            for (const file of Object.values(data)) {
+              const s = file.s;
+              const covered = Object.values(s).filter(v => v > 0).length;
+              const all = Object.values(s).length;
+              totalCovered += covered;
+              totalStatements += all;
+            }
+            const percent = totalStatements === 0 ? 0 : (100 * totalCovered / totalStatements);
+            console.log(percent.toFixed(2));
+          ")
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
           echo "$COVERAGE" > ../last-coverage.txt
-
 
       - name: Upload current coverage report
         uses: actions/upload-artifact@v4
