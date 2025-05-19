@@ -21,29 +21,60 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies for frontend and backend
-        run: |
-          npm install --workspace frontend
-          npm install --workspace backend
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
 
       - name: Run backend unit tests and collect coverage
+        working-directory: backend
         run: |
-          cd backend
           npx vitest run --coverage
-          COVERAGE=$(node -p "require('./backend/coverage/coverage-summary.json').total.statements.pct")
-          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-        id: coverage
 
-      - name: Upload coverage report
+      - name: Extract coverage percentage
+        run: |
+          echo "Reading coverage from backend/coverage/coverage-summary.json"
+          COVERAGE=$(node -e "console.log(require('./backend/coverage/coverage-summary.json').total.statements.pct)")
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+          echo "$COVERAGE" > last-coverage.txt
+
+      - name: Upload current coverage report
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/coverage
 
-      - name: Compare coverage with previous run (stub implementation)
+      - name: Upload current coverage value for future comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: last-coverage
+          path: last-coverage.txt
+
+      - name: Download previous coverage artifact (if exists)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          name: last-coverage
+          path: .
+
+      - name: Compare with previous coverage
         run: |
-          echo "Previous coverage comparison is not implemented."
-          echo "Assuming current coverage is acceptable."
+          echo "Current coverage: $COVERAGE%"
+          if [ -f last-coverage.txt ]; then
+            LAST=$(cat last-coverage.txt)
+            echo "Previous coverage: $LAST%"
+            COMPARE=$(awk "BEGIN {print ($COVERAGE < $LAST)}")
+            if [ "$COMPARE" == "1" ]; then
+              echo "❌ Coverage dropped from $LAST% to $COVERAGE%"
+              exit 1
+            else
+              echo "✅ Coverage did not drop."
+            fi
+          else
+            echo "No previous coverage found, skipping comparison."
+          fi
 
       - name: Detect changed TypeScript files
         id: changes
