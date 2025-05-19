@@ -107,3 +107,4 @@ jobs:
             git push
           else
             echo "No formatting changes needed."
+          fi
