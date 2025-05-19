@@ -35,11 +35,13 @@ jobs:
           npx vitest run --coverage
 
       - name: Extract coverage percentage
+        working-directory: backend
         run: |
-          echo "Reading coverage from backend/coverage/coverage-summary.json"
-          COVERAGE=$(node -e "console.log(require('./backend/coverage/coverage-summary.json').total.statements.pct)")
+          echo "Reading coverage from ./coverage/coverage-summary.json"
+          COVERAGE=$(node -e "console.log(require('./coverage/coverage-summary.json').total.statements.pct)")
           echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
-          echo "$COVERAGE" > last-coverage.txt
+          echo "$COVERAGE" > ../last-coverage.txt
+
 
       - name: Upload current coverage report
         uses: actions/upload-artifact@v4
