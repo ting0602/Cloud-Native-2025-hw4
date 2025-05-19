@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     pool: 'forks',
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       reporter: ['text', 'json', 'html']
     }
   }
