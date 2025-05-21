@@ -30,15 +30,15 @@ const AddTodo = (props: { saveTodo: (e: React.FormEvent, formData: ITodo) => voi
     <form className="Form" onSubmit={(e) => handleSubmit(e)}>
       <div>
         <div>
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">名字</label>
           <input onChange={handleForm} type="text" id="name" value={formData.name} required />
         </div>
         <div>
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description">描述</label>
           <input onChange={handleForm} type="text" id="description" value={formData.description} required />
         </div>
       </div>
-      <button disabled={isDisabled}>Add Todo</button>
+      <button disabled={isDisabled}>新增待辦事項</button>
     </form>
   )
 }
