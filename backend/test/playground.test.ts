@@ -5,7 +5,7 @@ import { fail } from 'assert'
 describe('my testing playground', () => {
   test('it works', () => {
     const expected = true
-    const actual = true 
+    const actual = true
     expect(actual).toBe(expected)
   })
 
